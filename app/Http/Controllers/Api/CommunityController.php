@@ -93,6 +93,8 @@ class CommunityController extends BaseController
     {
         try
         {
+            // return $request->profile_id;
+            $profileId = $request->profile_id;
             // Communties Interest By Interest ID
 			$matchingCommunities = CommunityInterests::where('interest_id', $id)->select('community_id')
 				->groupBy('community_id')
@@ -100,11 +102,11 @@ class CommunityController extends BaseController
 			
 
             // Communties By $matchingCommunities ID
-    		$data['community_list'] = Community::with(['follow' => function ($query) use ($id) {
-        		$query->where('profile_id', $id);
+    		$data['community_list'] = Community::with(['follow' => function ($query) use ($profileId) {
+        		$query->where('profile_id', $profileId);
     		}, 'community_owner'])
 			->whereIn('id', $matchingCommunities->pluck('community_id'))
-			->orwhere('profile_id', $id)
+			->orwhere('profile_id', $profileId)
 			->get();
         		
             // Feed Interest By Interest ID
@@ -119,7 +121,13 @@ class CommunityController extends BaseController
                 
 
             // Communities By Role Member on profile ID
- 			$data['popular_community'] = CommunityTeam::with('community_info')->where('profile_id',$request->profile_id)->where('role','member')->get();
+ 			$popular_community = CommunityTeam::with('community_info')->where('profile_id',$request->profile_id)->where('role','member')->get()->pluck('community_id');
+            $data['popular_community'] = Community::with(['follow' => function ($query) use ($profileId) {
+            		$query->where('profile_id', $profileId);
+        		}, 'community_owner'])
+    			->whereIn('id', $popular_community)
+    			->orwhere('profile_id', $profileId)
+    			->get();
             return response()->json(['success'=>true,'message'=>'Lists' ,'data'=>$data]);
 		
 
