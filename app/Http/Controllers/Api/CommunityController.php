@@ -16,6 +16,7 @@ use App\Models\Post;
 use App\Models\CommunityInterests;
 use App\Models\ProfileInterests;
 use App\Models\CommunityKeywords;
+use App\Models\CommuinityCheckIn;
 use Auth;
 use DB;
 
@@ -26,6 +27,79 @@ class CommunityController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function community_out(Request $request , $id)
+    {
+        try
+        {
+            $currenttime = \Carbon\Carbon::now();
+
+            $timein = CommuinityCheckIn::where('profile_id',$request->profile_id)->where('community_id',$id)->first();
+            // $timein->timeout = $mytime->toDateTimeString(),
+
+            $startDateTime = $timein->time_in;
+            $endDateTime = $currenttime->toDateTimeString();
+
+            // Parse the date-time strings into Carbon instances
+            $start = \Carbon\Carbon::parse($startDateTime);
+            $end = \Carbon\Carbon::parse($endDateTime);
+            
+            $totalMinutes = $start->diffInMinutes($end);
+            $timein->time_in = null;
+            $timein->total_min =  $timein->total_min + $totalMinutes;
+            $timein->save();
+        }
+        catch(\Eception $e)
+        {
+            return $this->sendError($e->getMessage());    
+        }
+    }
+     public function home_multi_community($id)
+     {
+        try
+        {
+            $teamo = CommunityTeam::where('role', 'owner')->where('profile_id', $id)->limit(2)->select('community_id')->pluck('community_id'); // Use pluck to get an array of community IDs
+            // Get the communities using the fetched IDs
+            $communityso = Community::whereIn('id', $teamo)->get();
+            
+            // Add the 'type' => 'owner' key to each community
+            $communityso->each(function ($community) {
+                $community->type = 'owner';
+            });
+            
+            $teama = CommunityTeam::where('role', 'admin')->where('profile_id', $id)->limit(2)->select('community_id')->pluck('community_id'); // Use pluck to get an array of community IDs
+            $communitysa = Community::whereIn('id', $teama)->get();
+            // Add the 'type' => 'owner' key to each community
+            $communitysa->each(function ($community) {
+                $community->type = 'admin';
+            });
+
+            
+            // $teamm = CommunityTeam::where('role','moderator')->where('profile_id',$id)->limit(2)->select('community_id')->get();
+            $teamm = CommunityTeam::where('role', 'moderator')->where('profile_id', $id)->limit(2)->select('community_id')->pluck('community_id'); // Use pluck to get an array of community IDs
+            $communitysm = Community::whereIn('id',$teamm)->get();
+            // Add the 'type' => 'owner' key to each community
+            $communitysm->each(function ($community) {
+                $community->type = 'moderator';
+            });
+
+            
+            // $communityt = CommuinityCheckIn::where('profile_id',$id)->orderBy('total_min', 'desc')->limit(2)->select('community_id')->get();
+            $communityt = CommuinityCheckIn::where('profile_id',$id)->orderBy('total_min', 'desc')->limit(2)->select('community_id')->pluck('community_id'); // Use pluck to get an array of community IDs
+            $communityst = Community::whereIn('id',$communityt)->get();
+            $communityst->each(function ($community) {
+                $community->type = 'spend time';
+            });
+
+            
+            $matchingCommunities = array_merge($communityso->toArray(),$communitysa->toArray(),$communitysm->toArray(),$communityst->toArray());
+
+            return $this->sendResponse('Community List', $matchingCommunities);    
+        }
+        catch(\Eception $e){
+            return $this->sendError($e->getMessage());    
+        }
+     }
     public function indexx(Request $request,$id)
     {
         try{
@@ -557,7 +631,23 @@ class CommunityController extends BaseController
     public function detail(Request $request,$id)
     {
         try{
-            $community = Community::withCount('total_posts')->find($id);
+            $mytime = \Carbon\Carbon::now();
+// echo $mytime->toDateTimeString();die;
+            $timein = CommuinityCheckIn::where('profile_id',$request->profile_id)->where('community_id',$id)->first();
+            if($timein)
+            {
+                $timein->time_in = $mytime->toDateTimeString();
+                $timein->save();
+            }
+            else
+            {
+                CommuinityCheckIn::create([
+                    'community_id' => $id,
+                    'profile_id' => $request->profile_id,
+                    'time_in' => $mytime->toDateTimeString(),
+                ]);
+            }
+            return $community = Community::withCount('total_posts')->find($id);
             $community['total_members'] = CommunityTeam::where(['community_id'=>$community->id,'status'=>'follow'])->count();
             $community['follow'] = CommunityTeam::where(['community_id'=>$community->id,'profile_id'=>$request->profile_id])->first();
             return response()->json(['success'=>true,'message'=>'Community Detail' ,'community_info'=>$community]);

@@ -42,7 +42,10 @@ Route::get('guide', [\App\Http\Controllers\Api\CMSController::class, 'guide']);
 Route::get('term/conditions', [\App\Http\Controllers\Api\CMSController::class, 'termanscondition']);
 
 Route::group(['middleware' => ['auth:sanctum'], 'prefix' => 'auth'], function () {
-	Route::resource('profile', \App\Http\Controllers\Api\ProfileController::class);
+	Route::get('home_multiple_community/{id}', [\App\Http\Controllers\Api\CommunityController::class,'home_multi_community']);
+	Route::get('community_out/{id}', [\App\Http\Controllers\Api\CommunityController::class,'community_out']);
+	
+    Route::resource('profile', \App\Http\Controllers\Api\ProfileController::class);
 	Route::post('change_passcode/{id}', [\App\Http\Controllers\Api\ProfileController::class, 'change_passcode']); 
 	Route::resource('post', \App\Http\Controllers\Api\PostController::class);
 	Route::post('post-feed', [\App\Http\Controllers\Api\PostController::class,'post_feed']);
@@ -81,8 +84,10 @@ Route::group(['middleware' => ['auth:sanctum'], 'prefix' => 'auth'], function ()
 	Route::post('community_member/pending_list/{id}', [\App\Http\Controllers\Api\CommunityController::class,'community_member_pending_update']); 
 	Route::delete('community_member/remove/{id}', [\App\Http\Controllers\Api\CommunityController::class,'community_member_remove']); 
 	Route::get('community_member/list/{id}', [\App\Http\Controllers\Api\CommunityController::class,'community_member_list']); 
+
     Route::resource('community', \App\Http\Controllers\Api\CommunityController::class); 
-	Route::get('community_list/{id}', [\App\Http\Controllers\Api\CommunityController::class,'indexx']); 
+	
+    Route::get('community_list/{id}', [\App\Http\Controllers\Api\CommunityController::class,'indexx']); 
 	Route::post('community_update/{id}', [\App\Http\Controllers\Api\CommunityController::class,'update']); 
 	Route::post('community_member_admin', [\App\Http\Controllers\Api\CommunityController::class,'member_admin']); 
     Route::get('my_community/{id}', [\App\Http\Controllers\Api\CommunityController::class,'my_communities']); 
