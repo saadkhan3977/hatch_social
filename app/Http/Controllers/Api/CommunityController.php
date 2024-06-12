@@ -73,7 +73,6 @@ class CommunityController extends BaseController
             $communitysa->each(function ($community) {
                 $community->type = 'admin';
             });
-
             
             // $teamm = CommunityTeam::where('role','moderator')->where('profile_id',$id)->limit(2)->select('community_id')->get();
             $teamm = CommunityTeam::where('role', 'moderator')->where('profile_id', $id)->limit(2)->select('community_id')->pluck('community_id'); // Use pluck to get an array of community IDs
@@ -647,7 +646,7 @@ class CommunityController extends BaseController
                     'time_in' => $mytime->toDateTimeString(),
                 ]);
             }
-            return $community = Community::withCount('total_posts')->find($id);
+            $community = Community::withCount('total_posts')->find($id);
             $community['total_members'] = CommunityTeam::where(['community_id'=>$community->id,'status'=>'follow'])->count();
             $community['follow'] = CommunityTeam::where(['community_id'=>$community->id,'profile_id'=>$request->profile_id])->first();
             return response()->json(['success'=>true,'message'=>'Community Detail' ,'community_info'=>$community]);
