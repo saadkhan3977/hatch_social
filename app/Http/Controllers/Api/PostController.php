@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\BaseController as BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Models\FeedPost;
+use App\Models\FeedPostLike;
 use App\Models\PostImage;
 use App\Models\Community;
 use App\Models\Hashtags;
@@ -79,6 +81,40 @@ class PostController extends BaseController
         }
     }
 
+    
+    public function feed_post_like(Request $request)
+     {
+         try
+         {
+             $validator = Validator::make($request->all(), [
+                 'post_id' => 'required|exists:feed_posts,id',
+                 'profile_id' => 'required',
+             ]);  
+             
+             
+             if($validator->fails())
+             {
+                 return $this->sendError($validator->errors()->first());
+             }
+ 
+            $input['profile_id'] = $request->profile_id;
+            $input['post_id'] = $request->post_id;
+            $data = FeedPostLike::where(['profile_id'=>$request->profile_id,'post_id' => $request->post_id])->first();
+            if($data)
+            {
+                $data->delete();
+                return response()->json(['success'=>true,'message'=>'Post Dislike Successfully']);
+            }
+            else
+            {
+                FeedPostLike::create($input);
+                return response()->json(['success'=>true,'message'=>'Post like Successfully']);
+            }
+        }
+        catch(\Eception $e){
+            return $this->sendError($e->getMessage());    
+        }
+    }
 
     public function store(Request $request)
     {
@@ -164,77 +200,41 @@ class PostController extends BaseController
 				'image' => 'max:15000',
             ]);  
             
-            
             if($validator->fails())
             {
                 return $this->sendError($validator->errors()->first(),500);
             }
-           // return             $input['hashtags'] = json_encode($request->hashtags);
-
-			// $community = Community::find($request->community_id);
-			
-			// if($community->privacy == 'yes' || $community->profile_id != $request->profile_id)
-			// {
-			// 	$input['status'] = 'pending';	
-			// }
-			// else
-			// {
-			// 	$input['status'] = 'active';
-			// }
+           
             $input['profile_id'] = $request->profile_id;
-            // $input['community_id'] = $request->community_id;
             $input['caption'] = $request->caption;
-            // $input['feed_id'] = json_encode($request->feed_id);
-            // $input['hashtags'] = json_encode($request->hashtags);
-            $data = Post::create($input);
-
+            $input['type'] = $request->type;
+            
+            
+            $fileUrl = null;
+            
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
+                $file->move('uploads/feedpost/', $fileName);
+                $fileUrl = 'uploads/feedpost/' . $fileName;
+            }
+            $input['file'] = $fileUrl;
+            $data = FeedPost::create($input);
             foreach($request->hashtags as $hashtags)
             {
-                // return $hashtags;
                 $hashtagss = Hashtags::find($hashtags);
                 if($hashtagss)
                 {
                     PostHashtags::create([
                         'post_id' => $data->id,
                         'feed_id' =>$hashtagss->feed_id,
-                        'comunity_id' => $request->community_id,
+                        // 'comunity_id' => $request->community_id,
                         'hashtag_id' =>$hashtagss->id,
                         'profile_id' => $request->profile_id,
                     ]);
                 }
             }
 
-            if ($request->hasFile('image')) {
-                $uploadedFiles = $request->file('image');
-                $profileUrls = [];
-            
-                foreach ($uploadedFiles as $file) {
-                    $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
-                    $file->move('uploads/post/', $fileName);
-                    $profileUrls = 'uploads/post/' . $fileName;
-
-                    PostImage::create([
-                        'post_id' => $data->id,
-                        'name' => $profileUrls
-                    ]);
-                }
-            }
-            
-            if ($request->file('video')) {
-                $uploadedVideoFiles = $request->file('video');
-                $VideoUrls = [];
-            
-                foreach ($uploadedVideoFiles as $file) {
-                    $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
-                    $file->move('uploads/post/', $fileName);
-                    $VideoUrls = 'uploads/post/' . $fileName;
-
-                    PostVideo::create([
-                        'post_id' => $data->id,
-                        'name' => $VideoUrls
-                    ]);
-                }
-            }
             return response()->json(['success'=>true,'message'=>'Post Create Successfully']);
         }
         catch(\Eception $e){

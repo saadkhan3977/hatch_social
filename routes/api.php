@@ -48,32 +48,38 @@ Route::group(['middleware' => ['auth:sanctum'], 'prefix' => 'auth'], function ()
     Route::resource('profile', \App\Http\Controllers\Api\ProfileController::class);
 	Route::post('change_passcode/{id}', [\App\Http\Controllers\Api\ProfileController::class, 'change_passcode']); 
 	Route::resource('post', \App\Http\Controllers\Api\PostController::class);
-	Route::post('post-feed', [\App\Http\Controllers\Api\PostController::class,'post_feed']);
 	Route::get('post_video_list/{id}', [\App\Http\Controllers\Api\PostController::class,'show_video']);
 	Route::get('pending_post/{id}', [\App\Http\Controllers\Api\PostController::class,'pending_post']);
 	Route::post('pending_post_update/{id}', [\App\Http\Controllers\Api\PostController::class,'pending_post_update']);
-	
-	Route::post('hashtags_list', [\App\Http\Controllers\Api\FeedController::class,'hashtags_list']);
 	Route::post('feed', [\App\Http\Controllers\Api\FeedController::class,'store']);
+	
+
+    // Feed Urls
+	Route::post('post-feed', [\App\Http\Controllers\Api\PostController::class,'post_feed']);
+	Route::post('hashtags_list', [\App\Http\Controllers\Api\FeedController::class,'hashtags_list']);
+    Route::get('all-feed-list', [\App\Http\Controllers\Api\FeedController::class,'all_feed_list']);
+    Route::get('post-by-feed/{id}', [\App\Http\Controllers\Api\FeedController::class,'post_by_feed']);
 	Route::get('post-by-profile/{id}', [\App\Http\Controllers\Api\FeedController::class,'post_by_profile']);
-	Route::post('post_like', [\App\Http\Controllers\Api\PostController::class,'like']);
+    Route::post('show-feed', [\App\Http\Controllers\Api\FeedController::class,'index']);
+	Route::post('feed-follow', [\App\Http\Controllers\Api\FeedController::class,'feed_follow']); 
+    Route::post('feed_post_like', [\App\Http\Controllers\Api\PostController::class,'feed_post_like']);
+    Route::post('feed_post_comment', [\App\Http\Controllers\Api\CommentController::class,'feed_post_comment']); 
+	
+    Route::post('post_like', [\App\Http\Controllers\Api\PostController::class,'like']);
 	Route::get('post_video_detail/{id}', [\App\Http\Controllers\Api\PostController::class,'video_play']);
 	Route::resource('event', \App\Http\Controllers\Api\EventController::class);
     Route::post('event_join', [\App\Http\Controllers\Api\EventController::class, 'event_join']);
 	Route::resource('profileqa', \App\Http\Controllers\Api\ProfileQAController::class);
     Route::post('profile_login', [\App\Http\Controllers\Api\ProfileController::class, 'login']);
-    Route::get('all-feed-list', [\App\Http\Controllers\Api\FeedController::class,'all_feed_list']);
-    Route::get('post-by-feed/{id}', [\App\Http\Controllers\Api\FeedController::class,'post_by_feed']);
     Route::post('update-post-by-feed/{id}', [\App\Http\Controllers\Api\FeedController::class,'update_post_by_feed']);
     Route::get('my-feed-list/{id}', [\App\Http\Controllers\Api\FeedController::class,'my_feed_list']);
     Route::get('feed-detail/{id}', [\App\Http\Controllers\Api\FeedController::class,'detail']);
-    Route::post('show-feed', [\App\Http\Controllers\Api\FeedController::class,'index']);
+    Route::get('feed-post-list/{id}', [\App\Http\Controllers\Api\FeedController::class,'feed_post_list']);
     
 	Route::get('interest_list', [\App\Http\Controllers\Api\InterestController::class, 'index']);
     Route::get('member', [\App\Http\Controllers\Api\ProfileController::class, 'member_list']);
     Route::post('member_search', [\App\Http\Controllers\Api\ProfileController::class, 'search']);
     Route::post('search', [\App\Http\Controllers\Api\CommunityController::class, 'search']);
-	Route::post('feed-follow', [\App\Http\Controllers\Api\FeedController::class,'feed_follow']); 
 
     //Route::resource('interest', \App\Http\Controllers\Api\InterestController::class); 
     // Route::resource('bubble', \App\Http\Controllers\Api\BubbleController::class); 

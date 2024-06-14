@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Validator;
 use App\Models\Feed;
 use App\Models\FeedFollow;
+use App\Models\FeedPost;
 use App\Models\PostHashtags;
 use App\Models\Hashtags;
 use App\Models\Post;
@@ -47,7 +48,7 @@ class FeedController extends BaseController
 //             $matchingCommunitiess = Community::with(['follow' => function ($query) use ($id) {
 //                 $query->where('profile_id', $id);
 //     		}, 'community_owner'])->whereIn('profile_id', $matchprofile)->get();
-            $feed =  Feed::with('profile_info','hashtags','posts','posts.total_likes','posts.comments','posts.comments.profile_info','posts.post_images','posts.post_videos','posts.profile_info','follow')->where('profile_id',$id)->get();
+            $feed =  Feed::with('profile_info','hashtags','posts','posts.total_likes','posts.comments','posts.comments.profile_info','posts.profile_info','follow')->where('profile_id',$id)->get();
 			
             $matchingCommunities = $feed;
             return response()->json(['success'=>true,'message'=>'Feed Lists', 'feed_info' => $matchingCommunities],200);
@@ -86,8 +87,20 @@ class FeedController extends BaseController
     public function my_feed_list($id)
     {
         try{
-            $data = Feed::with('follow')->where('profile_id',$id)->get();
-            return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$data],200);
+            // Get  Feed IDs By Profile ID
+            $idd = Feed::where('profile_id',$id)->get()->pluck('id')->toArray();
+            
+            //  Get Feed Ids By Profile PostHashtags match hashtags by profile ID
+            $postid = PostHashtags::where('profile_id', $id)
+                ->select('feed_id')
+                ->distinct()
+                ->orderBy('feed_id', 'desc') // Ensure to use a column present in the select list
+                ->pluck('feed_id')->toArray();
+            
+            $feedids =     array_unique(array_merge($idd, $postid));
+            // print_r($feedids);die;
+            $data = Feed::with('follow')->whereIn('id',$feedids)->get();
+            return response()->json(['success'=>true,'message'=>'My All Feed Lists','feeds_info'=>$data],200);
         }
         catch(\Eception $e){
             return $this->sendError($e->getMessage());    
@@ -98,8 +111,8 @@ class FeedController extends BaseController
     {
         try
         {
-            $data = Feed::withCount('posts')->with('profile_info','hashtags','posts','posts.total_likes','posts.comments','posts.comments.profile_info','posts.post_images','posts.post_videos','posts.profile_info','follow')->get();
-            return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$data],200);
+            $data = Feed::withCount('posts')->with('profile_info','hashtags','posts','posts.total_likes','posts.comments','posts.comments.profile_info','posts.profile_info','follow')->get();
+            return response()->json(['success'=>true,'message'=>'Feed Lists','feeds_info'=>$data],200);
         }
         catch(\Eception $e)
         {
@@ -116,7 +129,7 @@ class FeedController extends BaseController
             
             $profileId = $request->profile_id;
             $feed = Feed::with('posts','posts.total_likes','posts.my_like')->find($id);
-            $posts = $feed->posts()->with('hashtags.post_hashtags','post_images','post_videos','comments','comments.profile_info','profile_info','my_like')->withCount('total_likes','comments')->distinct()->paginate(10);
+            $posts = $feed->posts()->with('hashtags.post_hashtags','comments','comments.profile_info','profile_info','my_like')->withCount('total_likes','comments')->distinct()->paginate(10);
             return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$posts],200);
         }
         catch(\Eception $e)
@@ -161,11 +174,11 @@ class FeedController extends BaseController
                     continue; // Skip this iteration if the feed is not found
                 }
 
-                $postsForFeed = Post::withCount('total_likes', 'comments')
+                $postsForFeed = FeedPost::withCount('total_likes', 'comments')
                     ->whereHas('postHashtags', function ($query) use ($id, $feedId) {
                         $query->where('profile_id', $id)->where('feed_id', $feedId);
                     })
-                    ->with('my_like', 'comments', 'comments.profile_info', 'post_images', 'post_videos', 'profile_info')
+                    ->with('my_like', 'comments', 'comments.profile_info', 'profile_info')
                     ->get();
 
                 foreach ($postsForFeed as $post) {
@@ -188,45 +201,53 @@ class FeedController extends BaseController
     public function detail($id)
     {
         try{
-            $data = Feed::with('follow','posts','posts.hashtags')->withCount('posts as total_posts')->find($id);
-            
-            $data['post'] = $data->posts->unique('id');
-            //$fd = Feed::find($id);
-            // $feed = Feed::with('posts','posts.total_likes','posts.my_like')->find($id);
-            // $posts = $feed->posts()->with('post_images','post_videos','comments','comments.profile_info','profile_info','my_like')->withCount('total_likes','comments')->distinct()->paginate(10);
-            
-            // if(!$fd)
-            // {
-            // return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$fd],200);
-            // }
-            // $Hashtags = Hashtags::where('feed_id',$id)->get()->pluck('title');
-            // $post = Post::where(function ($query) use ($Hashtags) {
-            //     foreach ($Hashtags as $word) {
-            //         $query->orWhereJsonContains('hashtags', $word);
-            //     }
-            // })->get();
-            // $totalpost = $post->count();
-            // $data = Feed::with('follow')->select("feeds.*",\DB::raw("$totalpost as total_posts"))->find($id);
-            // $data['posts'] = $post;
-           // $data['hashtags'] = $Hashtags;
-            return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$data],200);
+            $feedId = $id;
+
+            $postid = PostHashtags::where('feed_id', $id)
+                ->select('post_id')
+                ->distinct()
+                ->pluck('post_id');
+
+            $posts = FeedPost::whereIn('id',$postid)->get();
+            $feed = Feed::with(['posts','posts.comments','posts.comments.profile_info','posts.postHashtags','hashtags', 'profile_info'])->with(['posts' => function($query) {
+                $query->withCount('total_likes');
+                $query->withCount('comments');
+            }])->find($id);
+
+            $feed['posts'] = $posts;
+                
+            return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$feed],200);
         }
         catch(\Eception $e){
             return $this->sendError($e->getMessage());    
         }
-        // try{
-        //     $Hashtags = Hashtags::where('feed_id',$id)->get()->pluck('title');
-        //     // $data = Feed::with('follow','total_posts')->whereHas('total_posts', function ($query) use ($Hashtags) {
-        //     //     foreach ($Hashtags as $word) {
-        //     //         $query->orWhereJsonContains('hashtags', $word);
-        //     //     }
-        //     // })->find($id);
-        //     $data = Feed::with('follow')->select("feeds.*",\DB::raw("0 as total_posts"))->find($id);
-        //     return response()->json(['success'=>true,'message'=>'Feed Detail','feeds_info'=>$data],200);
-        // }
-        // catch(\Eception $e){
-        //     return $this->sendError($e->getMessage());    
-        // }
+        
+    }
+    
+    public function feed_post_list($id)
+    {
+        try{
+            $feedId = $id;
+
+            $postid = PostHashtags::where('feed_id', $id)
+                ->select('post_id')
+                ->distinct()
+                ->pluck('post_id');
+
+            $posts = FeedPost::whereIn('id',$postid)->paginate(10);
+            // $feed = Feed::with(['posts','posts.comments','posts.comments.profile_info','posts.postHashtags','hashtags', 'profile_info'])->with(['posts' => function($query) {
+            //     $query->withCount('total_likes');
+            //     $query->withCount('comments');
+            // }])->find($id);
+
+            // $feed['posts'] = $posts;
+                
+            return response()->json(['success'=>true,'message'=>'Feed Post Lists','feeds_post_list'=>$posts],200);
+        }
+        catch(\Eception $e){
+            return $this->sendError($e->getMessage());    
+        }
+        
     }
 
     /**
@@ -330,7 +351,7 @@ class FeedController extends BaseController
                 ]);
             }
 
-            return response()->json(['success'=>true,'message'=>'Feed Post Successfully'],200);
+            return response()->json(['success'=>true,'message'=>'Feed Create Successfully'],200);
             
         }
         catch(\Eception $e){

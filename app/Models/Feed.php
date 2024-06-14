@@ -32,11 +32,11 @@ class Feed extends Model
     
     public function posts()
     {
-        return $this->hasManyThrough(Post::class, PostHashtags::class, 'feed_id', 'id', 'id', 'post_id');
+        return $this->hasManyThrough(FeedPost::class, PostHashtags::class, 'feed_id', 'id', 'id', 'post_id');
     }
     
     public function postss()
     {
-        return $this->hasManyThrough(Post::class, PostHashtags::class, 'feed_id', 'id', 'id', 'post_id');
+        return $this->hasManyThrough(FeedPost::class, PostHashtags::class, 'feed_id', 'id', 'id', 'post_id');
     }
 }

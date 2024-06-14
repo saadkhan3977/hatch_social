@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseController as BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Comment;
+use App\Models\FeedComment;
 use Validator;
 use Auth;
 
@@ -52,6 +53,30 @@ class CommentController extends BaseController
             $input = $request->except(['_token'],$request->all());
             $input['profile_id'] = $request->profile_id;
             $data = Comment::create($input);
+            return response()->json(['success'=>true,'message'=>'Your Comment has bees post','data'=>$data]);
+
+        }catch(\Eception $e){
+            return $this->sendError($e->getMessage());
+
+        }
+    }
+
+    
+    public function feed_post_comment(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(), [
+                'post_id' => 'required|exists:feed_posts,id',
+                'profile_id' => 'required|exists:profiles,id',
+                'description' => 'required|string',
+            ]); 
+            if($validator->fails())
+            {
+                return $this->sendError($validator->errors()->first(),500);
+            }
+            $input = $request->except(['_token'],$request->all());
+            $input['profile_id'] = $request->profile_id;
+            $data = FeedComment::create($input);
             return response()->json(['success'=>true,'message'=>'Your Comment has bees post','data'=>$data]);
 
         }catch(\Eception $e){
