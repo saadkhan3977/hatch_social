@@ -190,6 +190,7 @@ class PostController extends BaseController
 
             foreach($request->hashtags as $hashtags)
             {
+                // return $hashtags;
                 $hashtagss = Hashtags::find($hashtags);
                 if($hashtagss)
                 {

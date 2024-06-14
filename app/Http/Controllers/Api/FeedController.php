@@ -129,47 +129,55 @@ class FeedController extends BaseController
     {
         try
         {
-            $postid = PostHashtags::where('profile_id', $id)->orderBy('id', 'desc')->distinct()->pluck('feed_id');
+            // $postid = PostHashtags::where('profile_id', $id)->orderBy('id', 'desc')->distinct()->pluck('feed_id');
+            // $posts = []; // Initialize an empty array to store posts
+            // foreach ($postid as $feedId) {
+            //     $feed = Feed::with('hashtags', 'profile_info')->find($feedId);
+            //     $postsForFeed = Post::withCount('total_likes','comments')->whereHas('postHashtags', function ($query) use ($id, $feedId) {
+            //         $query->where('profile_id', $id)->where('feed_id', $feedId);
+            //     })->with('my_like', 'comments', 'comments.profile_info', 'post_images', 'post_videos', 'profile_info')->get();
+            
+            //     foreach ($postsForFeed as $post) {
+            //         $hashtags = PostHashtags::where('post_id', $post->id)->pluck('hashtag_id');
+            //         $post->hashtags = Hashtags::whereIn('id', $hashtags)->pluck('title')->toArray();
+            //         $post->feed = $feed->toArray();
+            //         $posts[] = $post;
+            //     }
+            // }
+            // return response()->json(['success'=>true,'message'=>'All Post List','post_list'=>$posts],200);
+            $postid = PostHashtags::where('profile_id', $id)
+                ->select('feed_id')
+                ->distinct()
+                ->orderBy('feed_id', 'desc') // Ensure to use a column present in the select list
+                ->pluck('feed_id');
+
             $posts = []; // Initialize an empty array to store posts
+
             foreach ($postid as $feedId) {
                 $feed = Feed::with('hashtags', 'profile_info')->find($feedId);
-                $postsForFeed = Post::withCount('total_likes','comments')->whereHas('postHashtags', function ($query) use ($id, $feedId) {
-                    $query->where('profile_id', $id)->where('feed_id', $feedId);
-                })->with('my_like', 'comments', 'comments.profile_info', 'post_images', 'post_videos', 'profile_info')->get();
-            
+
+                // Check if $feed is null
+                if ($feed === null) {
+                    continue; // Skip this iteration if the feed is not found
+                }
+
+                $postsForFeed = Post::withCount('total_likes', 'comments')
+                    ->whereHas('postHashtags', function ($query) use ($id, $feedId) {
+                        $query->where('profile_id', $id)->where('feed_id', $feedId);
+                    })
+                    ->with('my_like', 'comments', 'comments.profile_info', 'post_images', 'post_videos', 'profile_info')
+                    ->get();
+
                 foreach ($postsForFeed as $post) {
                     $hashtags = PostHashtags::where('post_id', $post->id)->pluck('hashtag_id');
                     $post->hashtags = Hashtags::whereIn('id', $hashtags)->pluck('title')->toArray();
-                    $post->feed = $feed->toArray();
+                    $post->feed = $feed->toArray(); // Safely convert to array
                     $posts[] = $post;
                 }
             }
-            // return $posts;
-            
-            
-            
-            
-            
-            
-            // $postid = PostHashtags::where('profile_id', $id)->orderBy('id','desc')->get();
-            // $posts = []; // Initialize an empty array to store posts
-            // foreach($postid as $key)
-            // {
-            //     $post = Post::with('my_like', 'comments','comments.profile_info', 'post_images', 'post_videos', 'profile_info')->find($key->post_id);
-            //     $feed = Feed::with('hashtags','profile_info')->find($key->feed_id)->toArray();
-            //     $hashtagsid = PostHashtags::where('post_id', $key->post_id)->get()->pluck('hashtag_id');
-            //     $hashtags = Hashtags::whereIn('id', $hashtagsid)->get()->pluck('title')->toArray(); // Convert collection to array
-            //     $post->hashtags = $hashtags; // Add hashtags to post object
-            //     $post->feed = $feed; // Add hashtags to post object
-            //     $posts[] = $post; // Add post to array of posts
-            // }
-            
-            
-            
-            
-            
-                    
-            return response()->json(['success'=>true,'message'=>'All Post List','post_list'=>$posts],200);
+
+            return response()->json(['success' => true, 'message' => 'All Post List', 'post_list' => $posts], 200);
+
         }
         catch(\Eception $e)
         {

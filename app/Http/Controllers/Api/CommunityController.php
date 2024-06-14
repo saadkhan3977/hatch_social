@@ -116,7 +116,7 @@ class CommunityController extends BaseController
             {
                
 			
-			$matchingCommunities = DB::table('community_interests')
+			 $matchingCommunities = DB::table('community_interests')
 				->select('community_id')
 				->whereIn('interest_id', $profileInterests)
 				->groupBy('community_id')
@@ -128,7 +128,7 @@ class CommunityController extends BaseController
                 }
                 else
                 {
-        		return	$communitiesd = Community::with(['follow' => function ($query) use ($id) {
+        			$communitiesd = Community::with(['follow' => function ($query) use ($id) {
                 		$query->where('profile_id', $id);
             		}, 'community_owner'])
         				->whereIn('id', $matchingCommunities->pluck('community_id'))
@@ -463,6 +463,7 @@ class CommunityController extends BaseController
     {
         try
         { 
+            // print_r($request->all());die;
 
             // print_r($request->interests[0]['name']);die;
             $validator = Validator::make($request->all(), [
@@ -495,7 +496,7 @@ class CommunityController extends BaseController
     
 			
             $input = $request->all();
-            $input = $request->except(['keywords','interests']);
+            $input = $request->except(['keywords','interest']);
             $input['image'] = 'uploads/community/'.$fileName;//$profile;
             $input['profile_id'] = $request->profile_id;
 			//$input['category'] = json_encode($request->category);
@@ -512,19 +513,20 @@ class CommunityController extends BaseController
             //}
             
             // Community Interest
-            if(isset($request->interests))
+            if(isset($request->interest))
     		{
+                $interest = Interests::find($request->interest);
     // 			$profile->bubbles = $request->bubble ? json_encode($request->bubble) : json_encode($profile->bubble);
-                foreach($request->interests as $key => $row)
-                {
+                // foreach($request->interests as $key => $row)
+                // {
                     // return $row['id'];
                     CommunityInterests::create([
                         'profile_id' => $request->profile_id,
                         'community_id' => $bubble->id,
-                        'interest_id' => $row['interest_id'],
-                        'name' => $row['name'],
+                        'interest_id' => $interest->id,
+                        'name' => $interest->name,
                     ]);
-                }
+                // }
     		}
     		
     		
