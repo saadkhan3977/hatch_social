@@ -102,6 +102,7 @@ Route::group(['middleware' => ['auth:sanctum'], 'prefix' => 'auth'], function ()
     Route::resource('comment', \App\Http\Controllers\Api\CommentController::class); 
 	Route::post('subscribe', [\App\Http\Controllers\Api\ProfileController::class,'subscribe']); 
 	Route::post('interest', [\App\Http\Controllers\Api\ProfileController::class,'interest']); 
+	Route::get('interest/{profile_id}', [\App\Http\Controllers\Api\ProfileController::class,'profile_interests']); 
 	Route::post('logout', [\App\Http\Controllers\Api\ProfileController::class,'logout']); 
 
     // // Route::middleware('auth:api')->group( function () {

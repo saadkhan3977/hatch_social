@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Validator;
 use App\Models\Profile;
 use App\Models\ProfileInterests;
+use App\Models\Interests;
 use App\Models\User;
 use Auth;
 
@@ -156,6 +157,17 @@ $userp['user_info'] = User::withCount('profiles as total_profile')->find(Auth::u
 			$profile->save();
 			// $profile = User::with('profiles')->find(Auth::user()->id);
 		return response()->json(['success' => true, 'message' => 'Interest Selected successfully', 'info' => $profile]);
+	}
+    
+    public function profile_interests($id)
+	{
+
+		$profileinterestids = ProfileInterests::where('profile_id',$id)->get()->pluck('interest_id');
+
+        $data['profile_terests'] = Interests::whereIn('id', $profileinterestids)->get();
+        $data['recommond_interests'] = Interests::whereNotIn('id', $profileinterestids)->get();
+        
+        return response()->json(['success' => true, 'message' => 'Interest Lists', 'data' => $data]);
 	}
 
     public function subscribe(Request $request)

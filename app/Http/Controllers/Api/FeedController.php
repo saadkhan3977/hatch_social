@@ -226,15 +226,15 @@ class FeedController extends BaseController
     
     public function feed_post_list($id)
     {
-        try{
+        try
+        {
             $feedId = $id;
-
             $postid = PostHashtags::where('feed_id', $id)
                 ->select('post_id')
                 ->distinct()
                 ->pluck('post_id');
 
-            $posts = FeedPost::whereIn('id',$postid)->paginate(10);
+            $posts = FeedPost::with('profile_info')->whereIn('id',$postid)->paginate(10);
             // $feed = Feed::with(['posts','posts.comments','posts.comments.profile_info','posts.postHashtags','hashtags', 'profile_info'])->with(['posts' => function($query) {
             //     $query->withCount('total_likes');
             //     $query->withCount('comments');
