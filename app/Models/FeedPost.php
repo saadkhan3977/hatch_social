@@ -25,6 +25,16 @@ class FeedPost extends Model
         return $this->belongsTo(\App\Models\PostHashtags::class ,'id','post_id');
     }
 
+    public function post_videos()
+    {
+        return $this->hasMany(\App\Models\PostVideo::class ,'post_id','id');
+    }
+
+    public function post_images()
+    {
+        return $this->hasMany(\App\Models\PostImage::class ,'post_id','id');
+    }
+
     public function my_like()
     {
         return $this->hasOne(\App\Models\FeedPostLike::class ,'post_id','id');
