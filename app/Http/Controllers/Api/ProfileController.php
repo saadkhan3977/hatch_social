@@ -164,7 +164,7 @@ $userp['user_info'] = User::withCount('profiles as total_profile')->find(Auth::u
 
 		$profileinterestids = ProfileInterests::where('profile_id',$id)->get()->pluck('interest_id');
 
-        $data['profile_terests'] = Interests::whereIn('id', $profileinterestids)->get();
+        $data['profile_interests'] = Interests::whereIn('id', $profileinterestids)->get();
         $data['recommond_interests'] = Interests::whereNotIn('id', $profileinterestids)->get();
         
         return response()->json(['success' => true, 'message' => 'Interest Lists', 'data' => $data]);
