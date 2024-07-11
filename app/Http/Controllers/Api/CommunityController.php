@@ -764,6 +764,31 @@ class CommunityController extends BaseController
     
     public function destroy($id)
     {
-        //
+        $community = Community::where('id',$id)->delete();
+        CommunityTeam::where('community_id',$id)->delete();
+        CommuinityCheckIn::where('community_id',$id)->delete();
+        CommunityInterests::where('community_id',$id)->delete();
+        CommunityKeywords::where('community_id',$id)->delete();
+        $posts = Post::where('community_id',$id)->get();
+        
+        foreach($posts as $post)
+        {
+            PostHashtags::where('post_id')->delete();
+            $images = PostImage::where('post_id')->get();
+            foreach($images as $image)
+            {
+                \File::delete('uploads/post/', $image->name);
+                $image->delete();
+            }
+            PostLike::where('post_id')->delete();
+            $videos = PostVideo::where('post_id')->get();
+            
+            foreach($videos as $video)
+            {
+                \File::delete('uploads/post/', $video->name);
+                $video->delete();
+            }
+        }
+        // return response()->json(['success'=>true,'barber_booking_list'=> $barberbooking],200);
     }
 }

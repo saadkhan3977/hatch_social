@@ -55,7 +55,7 @@ Route::group(['middleware' => ['auth:sanctum'], 'prefix' => 'auth'], function ()
 	
 
     // Feed Urls
-	Route::post('post-feed', [\App\Http\Controllers\Api\PostController::class,'post_feed']);
+	Route::post('post-feed', [\App\Http\Controllers\Api\FeedPostController::class,'store']);
 	Route::post('hashtags_list', [\App\Http\Controllers\Api\FeedController::class,'hashtags_list']);
     Route::get('all-feed-list', [\App\Http\Controllers\Api\FeedController::class,'all_feed_list']);
     Route::get('post-by-feed/{id}', [\App\Http\Controllers\Api\FeedController::class,'post_by_feed']);

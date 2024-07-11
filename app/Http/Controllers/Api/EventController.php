@@ -13,21 +13,11 @@ use Auth;
 
 class EventController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
         
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function event_join(Request $request)
     {
         try
@@ -37,12 +27,10 @@ class EventController extends BaseController
                 'event_id' => 'required|exists:events,id',
             ]);  
             
-            
             if($validator->fails())
             {
                 return $this->sendError($validator->errors()->first());
             }
-           //return $request->all();
 
             $input['profile_id'] = $request->profile_id;
             $input['event_id'] = $request->event_id;
@@ -55,12 +43,6 @@ class EventController extends BaseController
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         try
@@ -74,12 +56,10 @@ class EventController extends BaseController
                 'time' => 'required',			
             ]);  
             
-            
             if($validator->fails())
             {
                 return $this->sendError($validator->errors()->first());
             }
-           //return $request->all();
 
             $input['profile_id'] = $request->profile_id;
             $input['community_id'] = $request->community_id;
@@ -88,22 +68,22 @@ class EventController extends BaseController
             $input['date'] = $request->date;
             $input['time'] = $request->time;
             $data = Event::create($input);
-            if ($request->hasFile('image')) {
+
+            if($request->hasFile('image'))
+            {
                 $uploadedFiles = $request->file('image');
                 $profileUrls = [];
-            
-                foreach ($uploadedFiles as $file) {
+                foreach ($uploadedFiles as $file) 
+                {
                     $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
                     $file->move('uploads/event/', $fileName);
                     $profileUrls = 'uploads/event/' . $fileName;
-
                     EventImage::create([
                         'event_id' => $data->id,
                         'name' => $profileUrls
                     ]);
                 }
             }
-            
             return response()->json(['success'=>true,'message'=>'Event Create Successfully']);
         }
         catch(\Eception $e){
@@ -111,49 +91,32 @@ class EventController extends BaseController
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         $post = Event::with('images','user_info')->where('community_id',$id)->get();
         return response()->json(['success'=>true,'message'=>'Event Lists','event_info'=>$post],200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-        //
+        
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
-        //
+        
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        //
+        $event = Event::find($id);
+        $event->delete();
+        $images = EventImage::where('event_id',$id)->get();
+        foreach($images as $image)
+        {
+            \File::delete($image->name);
+            $image->delete();
+        }
+        return response()->json(['success'=>true,'message'=> 'Event Delete Successfully'],200);
     }
 }

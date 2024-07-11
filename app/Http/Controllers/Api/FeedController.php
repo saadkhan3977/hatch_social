@@ -178,7 +178,7 @@ class FeedController extends BaseController
                     ->whereHas('postHashtags', function ($query) use ($id, $feedId) {
                         $query->where('profile_id', $id)->where('feed_id', $feedId);
                     })
-                    ->with('my_like', 'comments', 'comments.profile_info', 'profile_info')
+                    ->with('images','videos','my_like', 'comments', 'comments.profile_info', 'profile_info')
                     ->get();
 
                 foreach ($postsForFeed as $post) {

@@ -9,9 +9,11 @@ use App\Models\Post;
 use App\Models\FeedPost;
 use App\Models\FeedPostLike;
 use App\Models\PostImage;
+use App\Models\FeedPostImage;
 use App\Models\Community;
 use App\Models\Hashtags;
 use App\Models\PostVideo;
+use App\Models\FeedPostVideo;
 use App\Models\PostLike;
 use App\Models\PostHashtags;
 use Validator;
@@ -86,20 +88,20 @@ class PostController extends BaseController
      {
          try
          {
-             $validator = Validator::make($request->all(), [
-                 'post_id' => 'required|exists:feed_posts,id',
-                 'profile_id' => 'required',
-             ]);  
+            $validator = Validator::make($request->all(), [
+                'post_id' => 'required|exists:feed_posts,id',
+                'profile_id' => 'required',
+            ]);  
              
-             
-             if($validator->fails())
-             {
-                 return $this->sendError($validator->errors()->first());
-             }
+            if($validator->fails())
+            {
+                return $this->sendError($validator->errors()->first());
+            }
  
             $input['profile_id'] = $request->profile_id;
             $input['post_id'] = $request->post_id;
             $data = FeedPostLike::where(['profile_id'=>$request->profile_id,'post_id' => $request->post_id])->first();
+            
             if($data)
             {
                 $data->delete();
@@ -125,16 +127,14 @@ class PostController extends BaseController
                 'profile_id' => 'required',		
 				'video' => 'max:15000',
 				'image' => 'max:15000',
-            ]);  
-            
+            ]);
             
             if($validator->fails())
             {
                 return $this->sendError($validator->errors()->first());
             }
-           // return             $input['hashtags'] = json_encode($request->hashtags);
 
-			$community = Community::find($request->community_id);
+            $community = Community::find($request->community_id);
 			
 			if($community->privacy == 'yes' || $community->profile_id != $request->profile_id)
 			{
@@ -144,17 +144,21 @@ class PostController extends BaseController
 			{
 				$input['status'] = 'active';
 			}
+
             $input['profile_id'] = $request->profile_id;
             $input['community_id'] = $request->community_id;
             $input['caption'] = $request->caption;
-            // $input['feed_id'] = json_encode($request->feed_id);
             $input['hashtags'] = json_encode($request->hashtags);
+            
             $data = Post::create($input);
-            if ($request->hasFile('image')) {
+            
+            if($request->hasFile('image')) 
+            {
                 $uploadedFiles = $request->file('image');
                 $profileUrls = [];
-            
-                foreach ($uploadedFiles as $file) {
+
+                foreach ($uploadedFiles as $file) 
+                {
                     $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
                     $file->move('uploads/post/', $fileName);
                     $profileUrls = 'uploads/post/' . $fileName;
@@ -166,7 +170,8 @@ class PostController extends BaseController
                 }
             }
             
-            if ($request->file('video')) {
+            if ($request->file('video')) 
+            {
                 $uploadedVideoFiles = $request->file('video');
                 $VideoUrls = [];
             
@@ -183,64 +188,12 @@ class PostController extends BaseController
             }
             return response()->json(['success'=>true,'message'=>'Post Create Successfully']);
         }
-        catch(\Eception $e){
-            return $this->sendError($e->getMessage());    
-        }
-    }
-    
-    
-    public function post_feed(Request $request)
-    {
-        try
+        catch(\Eception $e)
         {
-            $validator = Validator::make($request->all(), [
-                'caption' => 'required|string',
-                'profile_id' => 'required',		
-				'video' => 'max:15000',
-				'image' => 'max:15000',
-            ]);  
-            
-            if($validator->fails())
-            {
-                return $this->sendError($validator->errors()->first(),500);
-            }
-           
-            $input['profile_id'] = $request->profile_id;
-            $input['caption'] = $request->caption;
-            $input['type'] = $request->type;
-            
-            
-            $fileUrl = null;
-            
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
-                $file->move('uploads/feedpost/', $fileName);
-                $fileUrl = 'uploads/feedpost/' . $fileName;
-            }
-            $input['file'] = $fileUrl;
-            $data = FeedPost::create($input);
-            foreach($request->hashtags as $hashtags)
-            {
-                $hashtagss = Hashtags::find($hashtags);
-                if($hashtagss)
-                {
-                    PostHashtags::create([
-                        'post_id' => $data->id,
-                        'feed_id' =>$hashtagss->feed_id,
-                        // 'comunity_id' => $request->community_id,
-                        'hashtag_id' =>$hashtagss->id,
-                        'profile_id' => $request->profile_id,
-                    ]);
-                }
-            }
-
-            return response()->json(['success'=>true,'message'=>'Post Create Successfully']);
-        }
-        catch(\Eception $e){
             return $this->sendError($e->getMessage());    
         }
     }
+    
 
     /**
      * Display the specified resource.

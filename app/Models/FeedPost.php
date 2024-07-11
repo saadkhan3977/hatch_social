@@ -29,10 +29,20 @@ class FeedPost extends Model
     {
         return $this->hasMany(\App\Models\PostVideo::class ,'post_id','id');
     }
+    
+    public function videos()
+    {
+        return $this->hasMany(\App\Models\FeedPostVideo::class ,'post_id','id');
+    }
 
     public function post_images()
     {
         return $this->hasMany(\App\Models\PostImage::class ,'post_id','id');
+    }
+    
+    public function images()
+    {
+        return $this->hasMany(\App\Models\FeedPostImage::class ,'post_id','id');
     }
 
     public function my_like()
