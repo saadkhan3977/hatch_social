@@ -234,7 +234,7 @@ class FeedController extends BaseController
                 ->distinct()
                 ->pluck('post_id');
 
-            $posts = FeedPost::with('profile_info')->whereIn('id',$postid)->paginate(10);
+            $posts = FeedPost::with('profile_info','videos')->whereIn('id',$postid)->paginate(10);
             // $feed = Feed::with(['posts','posts.comments','posts.comments.profile_info','posts.postHashtags','hashtags', 'profile_info'])->with(['posts' => function($query) {
             //     $query->withCount('total_likes');
             //     $query->withCount('comments');
