@@ -750,7 +750,7 @@ class CommunityController extends BaseController
     public function search(Request $request)
     {
         $query = $request->input('search');
-        $community = Community::withCount('total_posts','total_members','follow')->with('follow')->where('title', 'like', "%$query%")->get();
+        $community = Community::withCount('total_posts','total_members','follow')->with('follow','profile_info')->where('title', 'like', "%$query%")->get();
         $feeds = Feed::with('profile_info','hashtags','posts','posts.total_likes','posts.comments','posts.comments.profile_info','posts.post_images','posts.post_videos','posts.profile_info','follow')->where('name', 'like', "%$query%")->get();
 
         $posts = Post::withCount('total_likes')

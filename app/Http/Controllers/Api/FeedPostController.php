@@ -86,14 +86,14 @@ class FeedPostController extends BaseController
             }
             else
             {
-                if ($request->file('video')) {
+                if ($request->hasFile('file')) {
                     $file = $request->file('file');
                     $VideoUrls = [];
                 
                     // foreach ($uploadedVideoFiles as $file) {
                         $fileName = md5($file->getClientOriginalName() . time()) . "Hatch-social." . $file->getClientOriginalExtension();
-                        $file->move('uploads/post/', $fileName);
-                        $VideoUrls = 'uploads/post/' . $fileName;
+                        $file->move('uploads/feedpost/', $fileName);
+                        $VideoUrls = 'uploads/feedpost/' . $fileName;
     
                         FeedPostVideo::create([
                             'post_id' => $data->id,
