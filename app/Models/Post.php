@@ -47,6 +47,11 @@ class Post extends Model
         return $this->hasOne(\App\Models\Community::class ,'id','community_id');
     }
     
+    public function community_list()
+    {
+        return $this->hasOne(\App\Models\Community::class ,'id','community_id');
+    }
+    
     public function profile_info()
     {
         return $this->hasOne(\App\Models\Profile::class ,'id','profile_id');

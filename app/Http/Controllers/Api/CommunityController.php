@@ -599,8 +599,8 @@ class CommunityController extends BaseController
 
 
             $data['interests'] = ProfileInterests::with('interest_detail')->where('profile_id',$id)->get();
-            $data['community_list'] = CommunityTeam::with('community_info','community_info.community_owner')->where('profile_id',$id)->where('role','moderator')->where('role','admin')->where('role','owner')->where('status','follow')->get();
-            
+            //$data['community_list'] = CommunityTeam::with('community_info','community_info.community_owner')->where('profile_id',$id)->where('role','moderator')->where('role','admin')->where('role','owner')->where('status','follow')->get();
+            $data['community_list'] = CommunityTeam::with('community_info','community_info.community_owner')->where('profile_id',$id)->whereNot('role','mwmber')->get();
             return response()->json(['success'=>true,'message'=>'Interests Lists', 'data' => $data],200);
 
         }

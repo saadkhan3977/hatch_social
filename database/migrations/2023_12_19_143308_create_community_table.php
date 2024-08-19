@@ -23,6 +23,15 @@ return new class extends Migration
             $table->string('admin_create_content')->nullable();
             $table->string('moderator_create_content')->nullable();
             $table->string('member_create_content')->nullable();
+            $table->string('admin_remove_content')->nullable();
+            $table->string('moderator_remove_content')->nullable();
+            $table->string('member_remove_content')->nullable();
+            $table->string('admin_create_comment')->nullable();
+            $table->string('moderator_create_comment')->nullable();
+            $table->string('member_create_comment')->nullable();
+            $table->string('admin_member_remove')->nullable();
+            $table->string('moderator_member_remove')->nullable();
+            $table->string('owner_member_remove')->nullable();
             $table->string('image')->nullable();
             $table->timestamps();
         });

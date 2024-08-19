@@ -309,7 +309,7 @@ class FeedController extends BaseController
                 'profile_id' => 'required',
                 'name' => 'required',
                 'hashtags' => 'required',			
-                'description' => 'required',			
+                //'description' => 'required',			
                 'image' => 'image|mimes:jpeg,png,jpg,bmp,gif,svg|max:2048',
             ]);      
             
