@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
 use App\Models\Community;
+use App\Models\PostHashtags;
 use App\Models\CommunityTeam;
 use App\Models\Interests;
 use App\Models\FeedInterest;

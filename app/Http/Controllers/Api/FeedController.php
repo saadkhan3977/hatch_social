@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Validator;
 use App\Models\Feed;
 use App\Models\FeedFollow;
+use App\Models\FeedInterest;
 use App\Models\FeedPost;
 use App\Models\PostHashtags;
 use App\Models\Hashtags;
@@ -318,11 +319,6 @@ class FeedController extends BaseController
                 return $this->sendError($validator->errors()->first(),500);
             }
             
-
-            
-            
-            
-            
             $fileName = null;
             if($request->hasFile('image')) 
             {
@@ -332,7 +328,7 @@ class FeedController extends BaseController
                 $profile = asset('uploads/feed/'.$fileName);
             }
 
-            $input = $request->except(['hashtags'],$request->all());
+            $input = $request->except(['hashtags','interest'],$request->all());
 
             // $input = $request->all();
             $input['profile_id'] = $request->profile_id;
@@ -342,6 +338,10 @@ class FeedController extends BaseController
             $input['image'] = 'uploads/feed/'.$fileName;
         
             $userp = Feed::create($input);
+            FeedInterest::create([
+                'feed_id' => $userp->id,
+                'interest_id' => $request->interest,
+            ]);
 
             foreach($request->hashtags as $key => $row)
             {

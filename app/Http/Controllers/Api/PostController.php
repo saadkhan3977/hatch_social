@@ -146,6 +146,7 @@ class PostController extends BaseController
 			}
 
             $input['profile_id'] = $request->profile_id;
+            $input['type'] = $request->type;
             $input['community_id'] = $request->community_id;
             $input['caption'] = $request->caption;
             $input['hashtags'] = json_encode($request->hashtags);

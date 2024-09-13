@@ -26,6 +26,9 @@ return new class extends Migration
             $table->string('admin_remove_content')->nullable();
             $table->string('moderator_remove_content')->nullable();
             $table->string('member_remove_content')->nullable();
+            $table->string('admin_remove_comment')->nullable();
+            $table->string('moderator_remove_comment')->nullable();
+            $table->string('member_remove_comment')->nullable();
             $table->string('admin_create_comment')->nullable();
             $table->string('moderator_create_comment')->nullable();
             $table->string('member_create_comment')->nullable();

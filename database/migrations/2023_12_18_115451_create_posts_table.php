@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('profile_id')->nullable();
             $table->string('caption')->nullable();
             $table->string('hashtags')->nullable();
+            $table->string('type')->nullable();
             $table->timestamps();
         });
     }

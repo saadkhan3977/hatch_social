@@ -86,15 +86,19 @@ class EventController extends BaseController
             }
             return response()->json(['success'=>true,'message'=>'Event Create Successfully']);
         }
-        catch(\Eception $e){
+        catch(\Eception $e)
+        {
             return $this->sendError($e->getMessage());    
         }
     }
 
     public function show($id)
     {
-        $post = Event::with('images','user_info')->where('community_id',$id)->get();
-        return response()->json(['success'=>true,'message'=>'Event Lists','event_info'=>$post],200);
+        $post = Event::with('images','user_info','join')->where('community_id',$id)
+			->orwhereHas('join', function($query) {
+				$query->where('profile_id', request('profile_id')); // Replace with your condition
+			})->get();
+        return response()->json(['success'=>true,'message'=>'Event Lists','event_list'=>$post],200);
     }
 
     public function edit($id)

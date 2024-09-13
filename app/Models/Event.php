@@ -19,4 +19,9 @@ class Event extends Model
     {
         return $this->hasOne(\App\Models\User::class,'id','user_id');
     }
+    
+    public function join()
+    {
+        return $this->hasOne(\App\Models\EventJoin::class,'event_id','id');
+    }
 }
